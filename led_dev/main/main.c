@@ -28,7 +28,6 @@ void app_main(void)
     {
         led_dev_led_toggle((led_dev_t *const )&s_tvirtual_led);
         led_dev_led_toggle((led_dev_t *const )&s_tatk_denesp32s3_led);
-
         vTaskDelay(1000);
     }
 }
