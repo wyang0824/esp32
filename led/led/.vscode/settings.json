@@ -1,0 +1,23 @@
+{
+    "C_Cpp.intelliSenseEngine": "default",
+    "idf.adapterTargetName": "esp32s3",
+    "idf.customExtraPaths": "f:\\Data\\code\\Espressif\\tools\\xtensa-esp-elf-gdb\\12.1_20231023\\xtensa-esp-elf-gdb\\bin;f:\\Data\\code\\Espressif\\tools\\riscv32-esp-elf-gdb\\12.1_20231023\\riscv32-esp-elf-gdb\\bin;f:\\Data\\code\\Espressif\\tools\\xtensa-esp32-elf\\esp-12.2.0_20230208\\xtensa-esp32-elf\\bin;f:\\Data\\code\\Espressif\\tools\\xtensa-esp32s2-elf\\esp-12.2.0_20230208\\xtensa-esp32s2-elf\\bin;f:\\Data\\code\\Espressif\\tools\\xtensa-esp32s3-elf\\esp-12.2.0_20230208\\xtensa-esp32s3-elf\\bin;f:\\Data\\code\\Espressif\\tools\\riscv32-esp-elf\\esp-12.2.0_20230208\\riscv32-esp-elf\\bin;f:\\Data\\code\\Espressif\\tools\\esp32ulp-elf\\2.35_20220830\\esp32ulp-elf\\bin;f:\\Data\\code\\Espressif\\tools\\cmake\\3.30.2\\bin;f:\\Data\\code\\Espressif\\tools\\openocd-esp32\\v0.12.0-esp32-20240821\\openocd-esp32\\bin;f:\\Data\\code\\Espressif\\tools\\ninja\\1.12.1;f:\\Data\\code\\Espressif\\tools\\idf-exe\\1.0.3;f:\\Data\\code\\Espressif\\tools\\ccache\\4.10.2\\ccache-4.10.2-windows-x86_64;f:\\Data\\code\\Espressif\\tools\\dfu-util\\0.11\\dfu-util-0.11-win64;f:\\Data\\code\\Espressif\\tools\\esp-rom-elfs\\20230320",
+    "idf.customExtraVars": {
+        "OPENOCD_SCRIPTS": "f:\\Data\\code\\Espressif\\tools\\openocd-esp32\\v0.12.0-esp32-20240821/openocd-esp32/share/openocd/scripts",
+        "IDF_CCACHE_ENABLE": "1",
+        "ESP_ROM_ELF_DIR": "f:\\Data\\code\\Espressif\\tools\\esp-rom-elfs\\20230320/"
+    },
+    "idf.espIdfPathWin": "F:/Data/code/Espressif/frameworks/esp-idf-v5.1.5/",
+    "idf.openOcdConfigs": [
+        "interface/ftdi/esp32_devkitj_v1.cfg",
+        "target/esp32s3.cfg"
+    ],
+    "idf.pythonBinPathWin": "F:/Data/code/Espressif/python_env/idf5.1_py3.11_env/Scripts/python.exe",
+    "idf.toolsPathWin": "f:\\Data\\code\\Espressif",
+    "idf.portWin": "COM12",
+    "files.associations": {
+        "nvs.h": "c",
+        "esp_types.h": "c",
+        "cdefs.h": "c"
+    }
+}
