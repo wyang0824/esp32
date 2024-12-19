@@ -26,12 +26,14 @@ static void _led_dev_toggle_default(void *const me)
 void led_dev_ctor(led_dev_t *const me)
 {
     ESP_ERROR_CHECK((me != NULL?ESP_OK:ESP_FAIL));
+
+
     static const led_dev_inf_t led_dev_inf_default = {
         _led_dev_init_default,
         _led_dev_set_default,
         _led_dev_toggle_default
     };
-
+    
     me->p_led_dev_inf = &led_dev_inf_default;
     me->p_arg = me;
 }

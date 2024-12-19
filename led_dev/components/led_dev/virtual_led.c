@@ -42,7 +42,7 @@ void virtual_led_ctor(virtual_led_t *const me)
         _led_toggle
     };
 
-    lb_led_dev_ctor((led_dev_t *const)&me->virtual_led_dev);
+    led_dev_ctor((led_dev_t *const)&me->virtual_led_dev);
 
     me->virtual_led_dev.p_led_dev_inf = &_led_dev_inf;
     me->virtual_led_dev.p_arg = me;

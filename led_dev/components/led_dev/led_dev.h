@@ -12,7 +12,7 @@ typedef struct _led_dev_inf_t
 
 typedef struct _led_dev_t
 {
-    led_dev_inf_t *p_led_dev_inf;
+    const led_dev_inf_t * p_led_dev_inf;
 
     void *p_arg;
 } led_dev_t;
