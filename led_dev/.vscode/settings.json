@@ -8,5 +8,7 @@
     "idf.toolsPathWin": "f:\\Data\\code\\Espressif",
     "files.associations": {
         "stdlib.h": "c"
-    }
+    },
+    "idf.flashType": "UART",
+    "idf.portWin": "COM12"
 }
