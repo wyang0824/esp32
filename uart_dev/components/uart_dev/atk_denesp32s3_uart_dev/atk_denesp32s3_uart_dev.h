@@ -21,8 +21,11 @@ extern "C"
 {
 #endif
 /* Exported types ------------------------------------------------------------*/
-
-typedef struct _atk_denesp32s3_uart_cfg_t /*可以添加引脚的的配置，这里先不做添加*/
+/*  配置要注意
+ * 1. 可以添加引脚的的配置，这里先不做添加
+ * 2. 需要定义应用的配置值，转换成每个芯片的配置值，这里直接使用芯片的配置值(需要查看芯片的配置值)
+ */
+typedef struct _atk_denesp32s3_uart_cfg_t 
 {
   uint32_t baud_rate;
   uint8_t data_bits;
@@ -51,14 +54,7 @@ typedef struct _atk_denesp32s3_uart_dev_inf_t
 
 /* Exported functions --------------------------------------------------------*/
 
-
-
-
-
-
-
-
-
+void atk_denesp32s3_uart_ctor(atk_denesp32s3_uart_dev_t *const me, atk_denesp32s3_uart_cfg_t *const cfg);
 
 #ifdef __cplusplus
 }

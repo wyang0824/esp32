@@ -54,7 +54,7 @@
  *****************************************************************************************
  */
 
- static const char *s_cstrtag = "ATK_UART";
+
 /*
  * LOCAL FUNCTION DEFINITIONS
  *****************************************************************************************
@@ -86,11 +86,11 @@ static void _uart_deinit(void *const me)
 
 static int _uart_send_data(void *const me, uint8_t *data, uint16_t len)
 {
-  return  uart_read_bytes(UART_PORT, data, len, 20 / portTICK_PERIOD_MS);
+  return  uart_write_bytes(UART_PORT, (const char *) data, len); //这个是阻塞的发送 因为uart_driver_install tx_buf_size 设置为0
 }
 static int _uart_recv_data(void *const me, uint8_t *data, uint16_t len)
 {
-  return  uart_write_bytes(UART_PORT, (const char *) data, len);
+    return  uart_read_bytes(UART_PORT, data, len, 20 / portTICK_PERIOD_MS);
 
 }
 
