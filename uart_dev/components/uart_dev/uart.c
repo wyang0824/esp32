@@ -70,10 +70,8 @@ static void _uart_task(void *arg)
         // Read data from the UART
         int len = uart_dev_recv_data(&p_uart_dev->super, data, BUF_SIZE);
         // Write data back to the UART
-        uart_dev_send_data(&p_uart_dev->super, data, len);
         if (len) {
-            data[len] = '\0';
-            ESP_LOGI(s_cstrtag, "Recv str: %s", (char *) data);
+            uart_dev_send_data(&p_uart_dev->super, data, len);
         }
     }
 }
