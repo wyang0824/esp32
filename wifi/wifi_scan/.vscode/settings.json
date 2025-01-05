@@ -7,6 +7,9 @@
     "idf.portWin": "COM12",
     "idf.toolsPathWin": "f:\\Data\\code\\Espressif",
     "files.associations": {
-        "compare": "c"
+        "compare": "c",
+        "esp_event.h": "c",
+        "thread": "c",
+        "task.h": "c"
     }
 }

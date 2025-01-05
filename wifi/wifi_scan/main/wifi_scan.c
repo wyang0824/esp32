@@ -1,54 +1,16 @@
-#include <stdio.h>
-#include <stdint.h>
 
-#include "esp_log.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
-#include "nvs_flash.h"
+#include "esp_log.h"
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 
-static const char *TAG = "app main";
-// ESP_EVENT_DEFINE_BASE(TASK_EVENTS);
-static TaskHandle_t app_task_handle = NULL;
+static const char *TAG = "wifi scan";
 
-static void  wifi_scan_evt_loop_handle(void* event_handler_arg,esp_event_base_t event_base,int32_t event_id,void* event_data)
+
+void wifi_scan_init(void)
 {
-    ESP_LOGI(TAG, "EVENT_BASE:%s EVENT_ID: %ld", event_base,event_id);
-    
-}
-// Task to be created.
-static void app_task( void * pvParameters )
-{
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    /**
-     * esp_event_handler_register(esp_event_base_t event_base, int32_t event_id, esp_event_handler_t event_handler, void *event_handler_arg
-     * 
-     */
-    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_scan_evt_loop_handle, pvParameters));
-    for( ;; )
-    {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        ESP_LOGI(TAG, "app task run");
-    }
-    vTaskDelete(NULL);
-}
-
-
-
-void app_main(void)
-{
-    esp_err_t ret = nvs_flash_init();
-    if ((ret == ESP_ERR_NVS_NO_FREE_PAGES) || (ret == ESP_ERR_NVS_NEW_VERSION_FOUND))
-    {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-   
-    /*
+     /*
      * 以下步骤需要严格参数  https://docs.espressif.com/projects/esp-idf/zh_CN/v5.4/esp32s3/api-guides/wifi.html 如下段落:
      * 1. ESP32-S3 Wi-Fi station 一般情况
      * 2. 在所有信道中扫描全部 AP（前端）
@@ -79,22 +41,12 @@ void app_main(void)
 
     /*
      *s1.5：主任务通过调用 OS API 创建应用程序任务
-     * 创建任务app_task,需要完全参考<ESP32-S3 Wi-Fi AP 一般情况> 图中的活动对象
-     * Main task     App task     Event task       Lwip task      Wi-Fi task
+     * 暂时省略
      *
      */
 
-    // Create the task, storing the handle.  Note that the passed parameter ucParameterToPass
-    // must exist for the lifetime of the task, so in this case is declared static.  If it was just an
-    // an automatic stack variable it might no longer exist, or at least have been corrupted, by the time
-    // the new task attempts to access it.
-    xTaskCreate( app_task, "app task", 4096, NULL, uxTaskPriorityGet(NULL) + 1, &app_task_handle );
-    configASSERT( app_task_handle );    
-    xTaskNotifyGive(app_task_handle); /*这里只是作为一种测试 没什么特殊的含义*/
-
     ESP_LOGI(TAG, "第二阶段:配置阶段");
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-
 
     ESP_LOGI(TAG, "第三阶段:启动阶段");
     /**
@@ -189,5 +141,4 @@ void app_main(void)
         printf("%30s  %3d  %3d  %02X-%02X-%02X-%02X-%02X-%02X\n", wifi_scan_ap_recored[i].ssid, wifi_scan_ap_recored[i].primary, wifi_scan_ap_recored[i].rssi, wifi_scan_ap_recored[i].bssid[0], wifi_scan_ap_recored[i].bssid[1], wifi_scan_ap_recored[i].bssid[2], wifi_scan_ap_recored[i].bssid[3], wifi_scan_ap_recored[i].bssid[4], wifi_scan_ap_recored[i].bssid[5]);
     }
 
-    vTaskDelete(NULL);
 }
