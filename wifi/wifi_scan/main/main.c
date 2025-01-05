@@ -16,7 +16,7 @@ static TaskHandle_t app_task_handle = NULL;
 
 static void  wifi_scan_evt_loop_handle(void* event_handler_arg,esp_event_base_t event_base,int32_t event_id,void* event_data)
 {
-    ESP_LOGI(TAG, "EVENT_BASE:%s EVENT_ID: %ld", event_base,event_id);
+    ESP_LOGI(TAG, "EVENT_BASE:%s EVENT_ID: %ld", event_base,event_id); /*注意 event_id是int32_t 类型 必须使用%ld打印 使用%d报错 */
     
 }
 // Task to be created.
