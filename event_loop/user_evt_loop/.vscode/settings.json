@@ -1,0 +1,9 @@
+{
+    "C_Cpp.intelliSenseEngine": "default",
+    "idf.espIdfPathWin": "F:/Data/code/Espressif/frameworks/esp-idf-v5.1.5/",
+    "idf.openOcdConfigs": [
+        "board/esp32s3-builtin.cfg"
+    ],
+    "idf.toolsPathWin": "f:\\Data\\code\\Espressif",
+    "idf.portWin": "COM12"
+}

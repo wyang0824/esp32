@@ -1,5 +1,5 @@
 
-
+**/build
 led_dev/build
 
 key_dev/build
@@ -9,3 +9,7 @@ uart_dev/build
 esptimer/build
 
 i2c/build
+
+event_loop/user_evt_loop/build
+
+**/build
