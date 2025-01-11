@@ -9,15 +9,71 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/event_groups.h"
 
 static const char *TAG = "app main";
 // ESP_EVENT_DEFINE_BASE(TASK_EVENTS);
 static TaskHandle_t app_task_handle = NULL;
+/* FreeRTOS event group to signal when we are connected*/
+static EventGroupHandle_t s_wifi_event_group;
+
+/* The event group allows multiple bits for each event, but we only care about two events:
+ * - we are connected to the AP with an IP
+ * - we failed to connect after the maximum amount of retries */
+#define WIFI_START_BIT          BIT0
+#define WIFI_SCAN_DONE_BIT      BIT1
+
 
 static void  wifi_scan_evt_loop_handle(void* event_handler_arg,esp_event_base_t event_base,int32_t event_id,void* event_data)
 {
     ESP_LOGI(TAG, "EVENT_BASE:%s EVENT_ID: %ld", event_base,event_id); /*注意 event_id是int32_t 类型 必须使用%ld打印 使用%d报错 */
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
+    {
+        ESP_LOGI(TAG, "esp wifi start evt");
+        xEventGroupSetBits(s_wifi_event_group, WIFI_START_BIT);
+    }
+    else if  (event_base == WIFI_EVENT && event_id == WIFI_EVENT_SCAN_DONE)
+    {
+        ESP_LOGI(TAG, "esp wifi scan done evt");
+        xEventGroupSetBits(s_wifi_event_group, WIFI_SCAN_DONE_BIT);
+    }
+    else
+    {
+        ; /*None*/
+    }
+}
+
+
+static void wifi_scan_result_read(void)
+{
     
+    /****
+     * 
+     * s3.1：当所有信道扫描全部完成后，将产生 WIFI_EVENT_SCAN_DONE 事件。
+     * s3.2：应用程序的事件回调函数告知应用程序任务已接收到 WIFI_EVENT_SCAN_DONE 事件。
+     * 调用函数 esp_wifi_scan_get_ap_num() 获取在本次扫描中找到的 AP 数量。
+     * 然后，分配出足够的事物槽，并调用函数 esp_wifi_scan_get_ap_records() 获取 AP 记录。
+     * 请注意，一旦调用 esp_wifi_scan_get_ap_records()，Wi-Fi 驱动程序中的 AP 记录将被释放。
+     * 但是，请不要在单个扫描完成事件中重复调用两次 esp_wifi_scan_get_ap_records()。
+     * 反之，如果扫描完成事件发生后未调用 esp_wifi_scan_get_ap_records()，则 Wi-Fi 驱动程序中的 AP 记录不会被释放。因此，请务必确保调用函数 esp_wifi_scan_get_ap_records()，且仅调用一次。
+     * 
+     * 
+     */
+
+#define WIFI_SCAN_MAX_AP_RECORED_NUM   50u
+    uint16_t wifi_scan_ap_num = 0;
+    wifi_ap_record_t wifi_scan_ap_recored[WIFI_SCAN_MAX_AP_RECORED_NUM] = {0};
+
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&wifi_scan_ap_num));
+    ESP_LOGI(TAG, "wifi scan ap count: %d", wifi_scan_ap_num);
+
+
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&wifi_scan_ap_num,wifi_scan_ap_recored));
+    printf("%30s %s %s %s\n", "SSID", "频道", "强度", "MAC地址");
+    for (uint16_t i = 0; i < wifi_scan_ap_num;i++)
+    {
+        printf("%30s  %3d  %3d  %02X-%02X-%02X-%02X-%02X-%02X\n", wifi_scan_ap_recored[i].ssid, wifi_scan_ap_recored[i].primary, wifi_scan_ap_recored[i].rssi, wifi_scan_ap_recored[i].bssid[0], wifi_scan_ap_recored[i].bssid[1], wifi_scan_ap_recored[i].bssid[2], wifi_scan_ap_recored[i].bssid[3], wifi_scan_ap_recored[i].bssid[4], wifi_scan_ap_recored[i].bssid[5]);
+    }
 }
 // Task to be created.
 static void app_task( void * pvParameters )
@@ -30,8 +86,27 @@ static void app_task( void * pvParameters )
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_scan_evt_loop_handle, pvParameters));
     for( ;; )
     {
+        #if 1
+        /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum
+        * number of re-tries (WIFI_FAIL_BIT). The bits are set by event_handler() (see above) */
+        EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
+                WIFI_START_BIT | WIFI_SCAN_DONE_BIT,
+                pdTRUE,
+                pdFALSE,
+                portMAX_DELAY);
+
+        if( bits & WIFI_START_BIT)
+        {
+            ESP_LOGI(TAG, "wifi start");
+        }
+        else if( bits & WIFI_SCAN_DONE_BIT)
+        {
+            wifi_scan_result_read();
+        }
+        #else
         vTaskDelay(1000 / portTICK_PERIOD_MS);
-        ESP_LOGI(TAG, "app task run");
+        #endif
+        
     }
     vTaskDelete(NULL);
 }
@@ -88,7 +163,9 @@ void app_main(void)
     // must exist for the lifetime of the task, so in this case is declared static.  If it was just an
     // an automatic stack variable it might no longer exist, or at least have been corrupted, by the time
     // the new task attempts to access it.
-    xTaskCreate( app_task, "app task", 4096, NULL, uxTaskPriorityGet(NULL) + 1, &app_task_handle );
+    s_wifi_event_group = xEventGroupCreate();
+    configASSERT(s_wifi_event_group);
+    xTaskCreate( app_task, "app task", 40960, NULL, uxTaskPriorityGet(NULL) + 1, &app_task_handle );
     configASSERT( app_task_handle );    
     xTaskNotifyGive(app_task_handle); /*这里只是作为一种测试 没什么特殊的含义*/
 
@@ -160,34 +237,7 @@ void app_main(void)
      * 
      * 
      */
-
-    /****
-     * 
-     * s3.1：当所有信道扫描全部完成后，将产生 WIFI_EVENT_SCAN_DONE 事件。
-     * s3.2：应用程序的事件回调函数告知应用程序任务已接收到 WIFI_EVENT_SCAN_DONE 事件。
-     * 调用函数 esp_wifi_scan_get_ap_num() 获取在本次扫描中找到的 AP 数量。
-     * 然后，分配出足够的事物槽，并调用函数 esp_wifi_scan_get_ap_records() 获取 AP 记录。
-     * 请注意，一旦调用 esp_wifi_scan_get_ap_records()，Wi-Fi 驱动程序中的 AP 记录将被释放。
-     * 但是，请不要在单个扫描完成事件中重复调用两次 esp_wifi_scan_get_ap_records()。
-     * 反之，如果扫描完成事件发生后未调用 esp_wifi_scan_get_ap_records()，则 Wi-Fi 驱动程序中的 AP 记录不会被释放。因此，请务必确保调用函数 esp_wifi_scan_get_ap_records()，且仅调用一次。
-     * 
-     * 
-     */
-
-#define WIFI_SCAN_MAX_AP_RECORED_NUM   50u
-    uint16_t wifi_scan_ap_num = 0;
-    wifi_ap_record_t wifi_scan_ap_recored[WIFI_SCAN_MAX_AP_RECORED_NUM] = {0};
-
-    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&wifi_scan_ap_num));
-    ESP_LOGI(TAG, "wifi scan ap count: %d", wifi_scan_ap_num);
-
-
-    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&wifi_scan_ap_num,wifi_scan_ap_recored));
-    printf("%30s %s %s %s\n", "SSID", "频道", "强度", "MAC地址");
-    for (uint16_t i = 0; i < wifi_scan_ap_num;i++)
-    {
-        printf("%30s  %3d  %3d  %02X-%02X-%02X-%02X-%02X-%02X\n", wifi_scan_ap_recored[i].ssid, wifi_scan_ap_recored[i].primary, wifi_scan_ap_recored[i].rssi, wifi_scan_ap_recored[i].bssid[0], wifi_scan_ap_recored[i].bssid[1], wifi_scan_ap_recored[i].bssid[2], wifi_scan_ap_recored[i].bssid[3], wifi_scan_ap_recored[i].bssid[4], wifi_scan_ap_recored[i].bssid[5]);
-    }
+    // wifi_scan_result_read();
 
     vTaskDelete(NULL);
 }
